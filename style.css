@@ -1,0 +1,810 @@
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: #f5f5f5;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+  min-height: 600px;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+}
+
+.mode-selector {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.mode-selector label {
+  display: inline-block;
+  margin: 0 15px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.phase-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 3px;
+}
+
+.phase-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.phase-area {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+/* 目標値と合計の中央独立バナー */
+.target-total-banner {
+  width: 60%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 40px;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px auto 0;
+  background-color: #f0f0f0;
+}
+
+.target-setting-large {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.target-setting-large input {
+width: 100px;
+font-size: 2rem;
+padding: 5px;
+text-align: center;
+border: 1px solid #ccc;
+border-radius: 4px;
+color: #e74c3c;
+}
+
+.total-display-large-target {
+font-size: 2rem;
+font-weight: bold;
+color: #e74c3c;
+width: 80px;
+margin-left: auto;
+margin-right: 20px;
+}
+
+.total-display-large-total {
+font-size: 2rem;
+font-weight: bold;
+color: #007cba;
+width: 80px;
+margin-left: 20px;
+margin-right: auto;
+}
+
+.player-name-display {
+font-size: 0.8rem;
+font-weight: bold;
+color: #666;
+text-align: left;
+}
+
+.text-part-target {
+font-size: 1.2rem;
+font-weight: bold;
+color: #e74c3c;
+width: 4rem;
+margin: auto auto auto auto;
+text-align: center;
+appearance: textfield!important;
+-webkit-appearance: none!important;
+margin: 0!important;
+-moz-appearance: textfield!important;
+}
+
+.text-part-total {
+font-size: 1.2rem;
+font-weight: bold;
+color: #007cba;
+width: 4rem;
+margin: auto auto auto auto;
+text-align: center;
+}
+
+.num-part-target {
+font-size: 2.2rem;
+font-weight: bold;
+color: #e74c3c;
+width: 4rem;
+margin: auto auto auto auto;
+text-align: center;
+}
+
+.num-part-total {
+font-size: 2.2rem;
+font-weight: bold;
+color: #007cba;
+display: flex;
+width: 4rem;
+margin: auto auto auto auto;
+justify-content: center; /* 左右の中央揃え */
+align-items: center;     /* 上下の中央揃え */
+height: 44px;
+}
+
+input.num-part {
+width: 100px;
+font-size: 2.2rem;
+text-align: center;
+}
+
+#current-player {
+  font-size: 1.4rem;
+  color: #000000;
+  display: inline-block;
+  margin-top: 4px;
+  text-align: left;
+}
+
+.phase-selector label {
+  font-weight: bold;
+}
+
+.target-setting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.target-setting label {
+  font-weight: bold;
+}
+
+#target-value {
+  width: 80px;
+  font-size: 2.4rem;
+  font-weight: bold;
+  color: #e74c3c;
+  text-align: center;
+  box-sizing: content-box;
+  border: solid #5b6dcd 0px;
+  padding: 0px;
+  margin: auto auto auto auto;
+}
+
+.total-display {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+
+.target-total-display {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: 20px;
+}
+
+.target-display {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.reset-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  width: 6em;
+  height: 3em;
+  padding: 3px 1px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.reset-btn:hover {
+  background-color: #c0392b;
+}
+
+.value-window {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 2rem;
+}
+
+.main-layout {
+  display: flex;
+  gap: 20px;
+}
+
+.left-panel {
+  flex: 1;
+}
+
+.right-panel {
+  flex: 0 0 400px;
+  border-left: 1px solid #ddd;
+  padding-left: 20px;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+input[type="number"],
+select {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.critical-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.critical-options label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+  font-weight: normal;
+}
+
+.critical-options input {
+  margin-right: 4px;
+}
+
+button {
+  background-color: #007cba;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+button:hover {
+  background-color: #005a87;
+}
+
+#result-area {
+  margin-top: 2rem;
+}
+
+/* 横並び: ログ表示の右側に合計と負傷を表示 */
+.result-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.result-row .log-display {
+  flex: 1 1 auto;
+  min-height: 40px;
+}
+
+.result-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 140px;
+  gap: 6px;
+}
+
+#result-area #total {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+#result-area #injury {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #e74c3c;
+}
+
+@media (max-width: 720px) {
+  .result-row {
+    flex-direction: column;
+  }
+  .result-summary {
+    min-width: auto;
+    margin-top: 8px;
+  }
+}
+
+.log-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 1rem;
+  min-height: 40px;
+}
+
+.dice-face {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  opacity: 0;
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.dice-face.normal {
+  background-color: #007cba;
+}
+
+.dice-face.critical {
+  background-color: #f39c12;
+}
+
+.dice-face.injury {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.roll-separator {
+  width: 100%;
+  height: 1px;
+  background-color: #ccc;
+  margin: 8px 0;
+}
+
+#total {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+#injury {
+  font-size: 1.1rem;
+  color: #e74c3c;
+  margin-top: 0.5rem;
+}
+
+#history-list {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.history-item {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: #f9f9f9;
+  border-left: 4px solid #007cba;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.history-item:hover {
+  background: #eef7ff;
+}
+
+.history-player {
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.history-total {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.delete-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin-left: auto;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+}
+
+.delete-btn:hover {
+  background: #c0392b;
+}
+
+.delete-btn.Orion_delete-circle {
+  width: 28px;
+  height: 28px;
+  font-size: 1.1rem;
+  font-family: 'Orion', sans-serif;
+  padding: 0;
+  line-height: 1;
+}
+
+.judge-area {
+  text-align: center;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+#judge-button {
+  font-size: 1.2rem;
+  padding: 12px 24px;
+}
+
+.modal {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.modal.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background-color: white;
+  margin: 5% auto;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+  transform: translateY(10px);
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.modal.show .modal-content {
+  transform: translateY(0);
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close:hover {
+  color: black;
+}
+
+#modal-log {
+  margin-bottom: 1rem;
+}
+
+.max-player-area {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  min-width: 250px;
+  font-size: 1.6rem;
+}
+
+.max-player-area h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+}
+
+#max-player-info {
+  font-size: 1.3rem;
+  color: #333;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.camp-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.camp-options label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+  font-weight: normal;
+}
+
+.camp-options input {
+  margin-right: 4px;
+}
+
+.history-player.camp-a {
+color: #007cba !important;
+}
+
+.history-player.camp-b {
+color: #e74c3c !important;
+}
+
+.duel-layout {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.duel-player-panel {
+  flex: 1;
+  background: #fafafa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.duel-player-panel h3 {
+  text-align: center;
+  margin-top: 0;
+  border-bottom: 2px solid #ccc;
+  padding-bottom: 10px;
+}
+
+.vs-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #999;
+}
+
+.duel-action-area {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.duel-action-area button {
+  font-size: 1.3rem;
+  padding: 15px 40px;
+  background-color: #e74c3c;
+}
+
+.duel-action-area button:hover {
+  background-color: #c0392b;
+}
+
+.duel-result {
+  margin-top: 20px;
+  font-size: 2rem;
+  font-weight: bold;
+  min-height: 2.5rem;
+}
+
+.duel-result-display {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px dashed #ccc;
+}
+
+/* Timer mode styles */
+.timer-panel {
+  text-align: center;
+  padding: 20px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.timer-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.timer-controls input[type="number"] {
+  width: 4.5rem;
+  padding: 6px;
+  font-size: 1rem;
+}
+
+.timer-display {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #333;
+  margin-top: 8px;
+}
+
+.timer-phase-display {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #222;
+  margin-top: 12px;
+  background: linear-gradient(90deg, #fff7e6, #e6f7ff);
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.timer-phase-chooser {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.timer-phase-chooser {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.timer-phase-chooser .phase-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+}
+
+.time-inputs div {
+  margin-bottom: 6px;
+}
+
+.timer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Timer modal styles */
+.timer-modal-content {
+  text-align: center;
+  padding: 32px 24px;
+  max-width: 420px;
+}
+
+.timer-modal-time {
+  font-size: 4rem;
+  font-weight: 900;
+  margin: 12px 0 20px 0;
+  color: #111;
+}
+
+.timer-modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+}
+
+.big-btn {
+  font-size: 1.4rem;
+  padding: 14px 22px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+#timer-modal-start { background-color: #27ae60; color: white; }
+#timer-modal-pause { background-color: #f39c12; color: white; }
+#timer-modal-reset { background-color: #e74c3c; color: white; }
+
+.timer-modal-content .close {
+  position: absolute;
+  right: 18px;
+  top: 12px;
+  font-size: 26px;
+}
+
+.duel-total {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.duel-injury {
+  font-size: 1.1rem;
+  color: #e74c3c;
+  margin-top: 5px;
+}
+
+/* 勝敗判定モーダル用スタイル */
+#judge-modal .modal-content {
+  text-align: center; /* 画面中央に揃える */
+  padding: 40px 20px;
+}
+
+#judge-title {
+  font-size: 3rem; /* 勝利・敗北の文字を大きく */
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+#judge-title.win-title {
+  color: #007cba; /* 勝利時は青色 */
+}
+
+#judge-title.lose-title {
+  color: #e74c3c; /* 敗北時は赤色 */
+}
+
+#judge-message {
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
+.spacer {
+  display: block;
+  height: 10px;
+}

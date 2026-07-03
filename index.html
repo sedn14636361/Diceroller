@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>「玉座の闇」ダイスロールツール</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>「玉座の闇」ダイスロールツール</h1>
+
+    <div class="mode-selector">
+      <label><input type="radio" name="app-mode" value="war" checked> 戦争モード</label>
+      <label><input type="radio" name="app-mode" value="duel"> 決闘モード</label>
+      <label><input type="radio" name="app-mode" value="test"> 判定モード</label>
+      <label><input type="radio" name="app-mode" value="timer"> タイマーモード</label>
+    </div>
+
+<div id="war-mode-section">
+      <div class="phase-header">
+        <div class="form-group">
+          <label for="player-name">フェイズ</label>
+          <select id="phase"></select>
+        </div>
+      </div>
+
+      <div class="target-total-banner">
+        <div class="total-display-large-target">
+          <label for="target-value" class="text-part-target">目標値</label>
+          <input type="number" id="target-value" class="num-part-target" min="0" value="0">
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="total-display-large-total">
+          <label class="text-part-total"> 達成値</label>
+          <label id="current-total" class="num-part-total">0</label>
+        </div>
+      </div>
+
+      <div class="judge-area">
+        <button type="button" id="judge-button">勝敗判定</button> <span class="spacer"></span>
+      </div>
+
+      <div class="main-layout">
+        <div class="left-panel">
+          <form id="dice-form">
+            <div class="form-group">
+              <label for="player-name">プレイヤー名</label>
+              <select id="player-name"></select>
+            </div>
+
+            <div class="form-group">
+              <label for="dice-count">振るダイスの個数</label>
+              <input type="number" id="dice-count" min="1" value="2">
+            </div>
+
+            <div id="camp-options" class="camp-options" style="display: none;">
+              <label>陣営:</label>
+            </div>
+
+            <div class="form-group">
+              <label>クリティカルになる出目（複数選択可）</label>
+              <div class="critical-options">
+                <label><input type="checkbox" name="critical" value="1"> 1</label>
+                <label><input type="checkbox" name="critical" value="2"> 2</label>
+                <label><input type="checkbox" name="critical" value="3"> 3</label>
+                <label><input type="checkbox" name="critical" value="4"> 4</label>
+                <label><input type="checkbox" name="critical" value="5"> 5</label>
+                <label><input type="checkbox" name="critical" value="6"> 6</label>
+              </div>
+            </div>
+
+            <button type="submit" id="roll-button">ロール</button>
+          </form>
+
+          <div id="result-area">
+            <h2>結果</h2>
+            <div class="result-row">
+              <div id="log" class="log-display"></div>
+              <div class="result-summary">
+                <div id="total">合計: 0</div>
+                <div id="injury">負傷: 0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="right-panel">
+          <h2>履歴</h2>
+          <div id="history-list"></div>
+        </div>
+      </div>
+
+      <div class="judge-area">
+        <button type="button" id="reset-phase-btn" class="reset-btn">リセット</button>
+      </div>
+    </div>
+
+    <div id="duel-mode-section" style="display: none;">
+      <form id="duel-form">
+        <div class="duel-layout">
+          <div class="duel-player-panel">
+            <h3>受動側</h3>
+            <div class="form-group">
+              <label for="duel-player-name-1">プレイヤー名</label>
+              <select id="duel-player-name-1"></select>
+            </div>
+            <div class="form-group">
+              <label for="duel-dice-count-1">振るダイスの個数</label>
+              <input type="number" id="duel-dice-count-1" min="1" value="2">
+            </div>
+            <div class="form-group">
+              <label>クリティカルになる出目</label>
+              <div class="critical-options">
+                <label><input type="checkbox" name="critical-1" value="1"> 1</label>
+                <label><input type="checkbox" name="critical-1" value="2"> 2</label>
+                <label><input type="checkbox" name="critical-1" value="3"> 3</label>
+                <label><input type="checkbox" name="critical-1" value="4"> 4</label>
+                <label><input type="checkbox" name="critical-1" value="5"> 5</label>
+                <label><input type="checkbox" name="critical-1" value="6"> 6</label>
+              </div>
+            </div>
+            <div class="duel-result-display">
+              <div id="duel-log-1" class="log-display"></div>
+              <div id="duel-total-1" class="duel-total">合計: 0</div>
+              <div id="duel-injury-1" class="duel-injury">負傷: 0</div>
+            </div>
+          </div>
+
+          <div class="vs-badge">VS</div>
+
+          <div class="duel-player-panel">
+            <h3>能動側</h3>
+            <div class="form-group">
+              <label for="duel-player-name-2">プレイヤー名</label>
+              <select id="duel-player-name-2"></select>
+            </div>
+            <div class="form-group">
+              <label for="duel-dice-count-2">振るダイスの個数</label>
+              <input type="number" id="duel-dice-count-2" min="1" value="2">
+            </div>
+            <div class="form-group">
+              <label>クリティカルになる出目</label>
+              <div class="critical-options">
+                <label><input type="checkbox" name="critical-2" value="1"> 1</label>
+                <label><input type="checkbox" name="critical-2" value="2"> 2</label>
+                <label><input type="checkbox" name="critical-2" value="3"> 3</label>
+                <label><input type="checkbox" name="critical-2" value="4"> 4</label>
+                <label><input type="checkbox" name="critical-2" value="5"> 5</label>
+                <label><input type="checkbox" name="critical-2" value="6"> 6</label>
+              </div>
+            </div>
+            <div class="duel-result-display">
+              <div id="duel-log-2" class="log-display"></div>
+              <div id="duel-total-2" class="duel-total">合計: 0</div>
+              <div id="duel-injury-2" class="duel-injury">負傷: 0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="duel-action-area">
+          <button type="submit" id="duel-roll-btn">決闘ロール</button>
+          <div id="duel-result-message" class="duel-result"></div>
+        </div>
+      </form>
+    </div>
+
+    <div id="test-mode-section" style="display: none;">
+      <form id="test-form">
+        <div class="form-group">
+          <label for="test-player-name">プレイヤー名</label>
+          <select id="test-player-name"></select>
+        </div>
+        
+        <div class="form-group">
+          <label for="test-dice-count">振るダイスの個数</label>
+          <input type="number" id="test-dice-count" min="1" value="3">
+        </div>
+        
+        <div class="form-group">
+          <label for="test-target">目標値</label>
+          <input type="number" id="test-target" value="12">
+        </div>
+        
+        <div class="form-group">
+          <label for="test-modifier">補正値</label>
+          <input type="number" id="test-modifier" value="0">
+        </div>
+        
+        <button type="submit" id="test-roll-btn">判定ロール</button>
+      </form>
+
+      <div id="test-result-area" style="margin-top: 2rem;">
+        <h2>結果</h2>
+        <div id="test-log" class="log-display"></div>
+        <div id="test-total" style="font-size: 1.2rem; font-weight: bold;"></div>
+        <div id="test-result-message" style="margin-top: 15px; font-size: 1.8rem; font-weight: bold;"></div>
+      </div>
+    </div>
+
+    <div id="timer-mode-section" style="display: none;">
+      <div class="timer-panel">
+        <h2>タイマー</h2>
+        <div class="timer-phase-chooser">
+          <label class="phase-option"><input type="radio" name="timer-phase" value="第一交渉フェイズ" checked> 第一交渉フェイズ</label>
+          <label class="phase-option"><input type="radio" name="timer-phase" value="第二交渉フェイズ"> 第二交渉フェイズ</label>
+          <label class="phase-option"><input type="radio" name="timer-phase" value="第三交渉フェイズ"> 第三交渉フェイズ</label>
+        </div>
+
+        <div class="timer-controls">
+          <div class="time-inputs">
+            <div><label>分: <input type="number" id="timer-minutes" min="0" value="20"></label></div>
+            <div><label>秒: <input type="number" id="timer-seconds" min="0" max="59" value="00"></label></div>
+          </div>
+
+          <div class="timer-actions">
+            <button type="button" id="timer-toggle-btn">開始</button>
+            <button type="button" id="timer-reset-btn">リセット</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="max-player-area" class="max-player-area">
+      <h3>英雄</h3>
+      <div id="max-player-info"></div>
+    </div>
+  </div>
+
+  <div id="detail-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3 id="modal-title">詳細</h3>
+      <div id="modal-log" class="log-display"></div>
+      <div id="modal-total"></div>
+      <div id="modal-injury"></div>
+    </div>
+  </div>
+
+  <div id="judge-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3 id="judge-title">勝敗判定</h3>
+      <div id="judge-message">ダミーメッセージ</div>
+    </div>
+  </div>
+
+  <div id="target-setup-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>目標値の設定</h2>
+      <form id="target-setup-form" class="target-setup-form">
+        <label for="initial-target">このフェイズの目標値を入力してください:</label>
+        <input type="number" id="initial-target" min="0" value="0" required>
+        <button type="submit">決定</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Timer popup modal -->
+  <div id="timer-modal" class="modal">
+      <div class="modal-content timer-modal-content">
+      <span class="close" id="timer-modal-close">&times;</span>
+      <h2 id="timer-modal-phase">第一交渉フェイズ</h2>
+      <div id="timer-modal-time" class="timer-modal-time">20:00</div>
+      <div class="timer-modal-buttons">
+        <button type="button" id="timer-modal-toggle" class="big-btn">一時停止</button>
+        <button type="button" id="timer-modal-reset" class="big-btn">リセット</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
