@@ -718,8 +718,23 @@ color: #e74c3c !important;
   font-size: 0.95rem;
 }
 
+.time-inputs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .time-inputs div {
-  margin-bottom: 6px;
+  margin-bottom: 0;
+}
+
+.time-inputs label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 0;
 }
 
 .timer-actions {
