@@ -1,14 +1,14 @@
-const dummyPlayers = [
-  'プレイヤーA', 'プレイヤーB', 'プレイヤーC', 'プレイヤーD',
-  'プレイヤーE', 'プレイヤーF', 'プレイヤーG', 'プレイヤーH',
-  'プレイヤーI', 'プレイヤーJ', 'プレイヤーK', 'プレイヤーL',
-  'プレイヤーM', 'プレイヤーN', 'プレイヤーO', 'プレイヤーP',
-  'プレイヤーQ', 'プレイヤーR', 'プレイヤーS', 'プレイヤーT',
-  'プレイヤーU', 'プレイヤーV', 'プレイヤーW', 'プレイヤーX'
+const Players = [
+  'HO1国王ユリウス・フラウニア', 'HO2第一王妃セレティ・フラウニア', 'HO3第二王妃セレティ・フラウニア', 'HO4第一王子イズガル・フラウニア',
+  'HO5第二王子ケティ・フラウニア', 'HO6第三王子リニス・フラウニア', 'HO7第一王女クレシャ・フラウニア', 'HO8第二王女セフィーレ・フラウニア',
+  'HO9孤高の騎士リチャード', 'HO10不死の騎士デューク', 'HO11戦旗の騎士エリン', 'HO12見習い預言者レシア',
+  'HO13霊媒師ウガラガ', 'HO14預言者の母ミレリ', 'HO15衛兵隊長ドレンディア', 'HO16王子の近衛兵スフィム',
+  'HO17宝石商カクタス', 'HO18武器商人ダンヴァル', 'HO19小物商人ルヴィン', 'HO20流浪の旅人ルファ',
+  'HO21パン屋コルテス', 'HO22新聞配達人セナ', 'HO23長老ロウリム', 'HO24湖の魔女'
 ];
 
 const playerSettings = {};
-dummyPlayers.forEach((player, index) => {
+Players.forEach((player, index) => {
   const colors = [
     '#007cba', '#27ae60', '#e74c3c', '#f39c12',
     '#9b59b6', '#1abc9c', '#d35400', '#3498db',
@@ -235,7 +235,7 @@ function setupPlayerSelect() {
     document.getElementById('test-player-name')
   ];
 
-  dummyPlayers.forEach(player => {
+  Players.forEach(player => {
     selects.forEach(select => {
       if (select) {
         const option = document.createElement('option');
