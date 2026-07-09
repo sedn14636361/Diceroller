@@ -1,10 +1,10 @@
 const Players = [
-  'HO1国王ユリウス・フラウニア', 'HO2第一王妃セレティ・フラウニア', 'HO3第二王妃セレティ・フラウニア', 'HO4第一王子イズガル・フラウニア',
-  'HO5第二王子ケティ・フラウニア', 'HO6第三王子リニス・フラウニア', 'HO7第一王女クレシャ・フラウニア', 'HO8第二王女セフィーレ・フラウニア',
-  'HO9孤高の騎士リチャード', 'HO10不死の騎士デューク', 'HO11戦旗の騎士エリン', 'HO12見習い預言者レシア',
-  'HO13霊媒師ウガラガ', 'HO14預言者の母ミレリ', 'HO15衛兵隊長ドレンディア', 'HO16王子の近衛兵スフィム',
-  'HO17宝石商カクタス', 'HO18武器商人ダンヴァル', 'HO19小物商人ルヴィン', 'HO20流浪の旅人ルファ',
-  'HO21パン屋コルテス', 'HO22新聞配達人セナ', 'HO23長老ロウリム', 'HO24湖の魔女'
+  'HO1 国王ユリウス・フラウニア', 'HO2 第一王妃セレティ・フラウニア', 'HO3 第二王妃セレティ・フラウニア', 'HO4 第一王子イズガル・フラウニア',
+  'HO5 第二王子ケティ・フラウニア', 'HO6 第三王子リニス・フラウニア', 'HO7 第一王女クレシャ・フラウニア', 'HO8 第二王女セフィーレ・フラウニア',
+  'HO9 孤高の騎士リチャード', 'HO10 不死の騎士デューク', 'HO11 戦旗の騎士エリン', 'HO12 見習い預言者レシア',
+  'HO13 霊媒師ウガラガ', 'HO14 預言者の母ミレリ', 'HO15 衛兵隊長ドレンディア', 'HO16 王子の近衛兵スフィム',
+  'HO17 宝石商カクタス', 'HO18 武器商人ダンヴァル', 'HO19 小物商人ルヴィン', 'HO20 流浪の旅人ルファ',
+  'HO21 パン屋コルテス', 'HO22 新聞配達人セナ', 'HO23 長老ロウリム', 'HO24 湖の魔女'
 ];
 
 const playerSettings = {};
@@ -152,7 +152,7 @@ function renderHistory() {
 
     const totalDiv = document.createElement('div');
     totalDiv.className = 'history-total';
-    totalDiv.textContent = `合計: ${record.total} / 負傷: ${record.injury}`;
+    totalDiv.innerHTML = `合計: ${record.total}<br>負傷: ${record.injury}`;
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete-btn Orion_delete-circle';
