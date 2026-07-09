@@ -118,10 +118,6 @@ color: #e74c3c;
 width: 4rem;
 margin: auto auto auto auto;
 text-align: center;
-appearance: textfield!important;
--webkit-appearance: none!important;
-margin: 0!important;
--moz-appearance: textfield!important;
 }
 
 .text-part-total {
@@ -137,9 +133,11 @@ text-align: center;
 font-size: 2.2rem;
 font-weight: bold;
 color: #e74c3c;
+display: flex;
 width: 4rem;
 margin: auto auto auto auto;
-text-align: center;
+justify-content: center; /* 左右の中央揃え */
+align-items: center;     /* 上下の中央揃え */
 }
 
 .num-part-total {
@@ -151,7 +149,6 @@ width: 4rem;
 margin: auto auto auto auto;
 justify-content: center; /* 左右の中央揃え */
 align-items: center;     /* 上下の中央揃え */
-height: 44px;
 }
 
 input.num-part {
@@ -183,15 +180,13 @@ text-align: center;
 }
 
 #target-value {
-  width: 80px;
-  font-size: 2.4rem;
   font-weight: bold;
-  color: #e74c3c;
-  text-align: center;
-  box-sizing: content-box;
-  border: solid #5b6dcd 0px;
-  padding: 0px;
+  color: #e74c3c;;
+  display: flex;
+  width: 4rem;
   margin: auto auto auto auto;
+  justify-content: center; /* 左右の中央揃え */
+  align-items: center;     /* 上下の中央揃え */
 }
 
 .total-display {
@@ -410,7 +405,7 @@ button:hover {
 }
 
 .history-item {
-  padding: 8px 12px;
+  padding: 8px 12px 8px 12px;
   margin-bottom: 8px;
   background: #f9f9f9;
   border-left: 4px solid #007cba;
@@ -418,8 +413,11 @@ button:hover {
   cursor: pointer;
   transition: background 0.2s;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  position: relative;
+  padding-right: 36px;
   opacity: 0;
   animation: fadeIn 0.5s ease forwards;
 }
@@ -430,12 +428,14 @@ button:hover {
 
 .history-player {
   font-weight: bold;
-  margin-bottom: 2px;
+  display: block;
 }
 
 .history-total {
   font-size: 0.9rem;
   color: #666;
+  display: block;
+  line-height: 1.5;
 }
 
 .delete-btn {
@@ -447,7 +447,10 @@ button:hover {
   height: 24px;
   cursor: pointer;
   font-size: 0.8rem;
-  margin-left: auto;
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
   flex-shrink: 0;
   display: flex;
   align-items: center;
