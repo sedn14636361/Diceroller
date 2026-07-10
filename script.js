@@ -1,10 +1,10 @@
 const Players = [
-  'HO1国王ユリウス・フラウニア', 'HO2第一王妃セレティ・フラウニア', 'HO3第二王妃セレティ・フラウニア', 'HO4第一王子イズガル・フラウニア',
-  'HO5第二王子ケティ・フラウニア', 'HO6第三王子リニス・フラウニア', 'HO7第一王女クレシャ・フラウニア', 'HO8第二王女セフィーレ・フラウニア',
-  'HO9孤高の騎士リチャード', 'HO10不死の騎士デューク', 'HO11戦旗の騎士エリン', 'HO12見習い預言者レシア',
-  'HO13霊媒師ウガラガ', 'HO14預言者の母ミレリ', 'HO15衛兵隊長ドレンディア', 'HO16王子の近衛兵スフィム',
-  'HO17宝石商カクタス', 'HO18武器商人ダンヴァル', 'HO19小物商人ルヴィン', 'HO20流浪の旅人ルファ',
-  'HO21パン屋コルテス', 'HO22新聞配達人セナ', 'HO23長老ロウリム', 'HO24湖の魔女'
+  'HO1 国王ユリウス・フラウニア', 'HO2 第一王妃セレティ・フラウニア', 'HO3 第二王妃セレティ・フラウニア', 'HO4 第一王子イズガル・フラウニア',
+  'HO5 第二王子ケティ・フラウニア', 'HO6 第三王子リニス・フラウニア', 'HO7 第一王女クレシャ・フラウニア', 'HO8 第二王女セフィーレ・フラウニア',
+  'HO9 孤高の騎士リチャード', 'HO10 不死の騎士デューク', 'HO11 戦旗の騎士エリン', 'HO12 見習い預言者レシア',
+  'HO13 霊媒師ウガラガ', 'HO14 預言者の母ミレリ', 'HO15 衛兵隊長ドレンディア', 'HO16 王子の近衛兵スフィム',
+  'HO17 宝石商カクタス', 'HO18 武器商人ダンヴァル', 'HO19 古物商ルヴィン', 'HO20 流浪の旅人ルファ',
+  'HO21 パン屋コルテス', 'HO22 新聞配達人セナ', 'HO23 長老ロウリム', 'HO24 湖の魔女'
 ];
 
 const playerSettings = {};
@@ -120,6 +120,46 @@ function renderLog(rollLogs, targetId = 'log', ignoreInjury = false) {
   });
 }
 
+function showRollResultPopup(playerName, rollLogs, total, injury) {
+  const modal = document.getElementById('roll-result-modal');
+  if (!modal) return;
+
+  // プレイヤー名を設定
+  document.getElementById('roll-player-name').textContent = playerName;
+  
+  // ダイス結果を表示
+  const diceDisplay = document.getElementById('roll-dice-display');
+  diceDisplay.innerHTML = '';
+  
+  rollLogs.forEach((roll, index) => {
+    if (index > 0) {
+      const separator = document.createElement('div');
+      separator.className = 'roll-separator';
+      diceDisplay.appendChild(separator);
+    }
+
+    roll.forEach(result => {
+      const diceFace = document.createElement('div');
+      let faceClass = result.isCrit ? 'critical' : 'normal';
+      
+      if (result.value === 1 && index === 0 && !result.isCrit) {
+        faceClass = 'injury';
+      }
+      
+      diceFace.className = `dice-face ${faceClass}`;
+      diceFace.textContent = result.value;
+      diceDisplay.appendChild(diceFace);
+    });
+  });
+  
+  // 合計と負傷を表示
+  document.getElementById('roll-total-value').textContent = total;
+  document.getElementById('roll-injury-value').textContent = injury;
+  
+  // モーダルを表示
+  modal.classList.add('show');
+}
+
 function renderHistory() {
   const historyList = document.getElementById('history-list');
   if (!historyList) return;
@@ -137,11 +177,11 @@ function renderHistory() {
     
     let playerText = record.player;
 
-    if (record.camp === '陣営A') {
+    if (record.camp === '王国側') {
       playerDiv.classList.add('camp-a');
       borderColor = '#007cba';
       playerText = record.player;
-    } else if (record.camp === '陣営B') {
+    } else if (record.camp === '人狼側') {
       playerDiv.classList.add('camp-b');
       borderColor = '#e74c3c';
       playerText = record.player;
@@ -152,7 +192,7 @@ function renderHistory() {
 
     const totalDiv = document.createElement('div');
     totalDiv.className = 'history-total';
-    totalDiv.textContent = `合計: ${record.total} / 負傷: ${record.injury}`;
+    totalDiv.innerHTML = `合計: ${record.total}<br>負傷: ${record.injury}`;
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete-btn Orion_delete-circle';
@@ -225,6 +265,16 @@ function setupModal() {
       });
     }
   });
+
+  // ロール結果モーダルのクリックイベント設定
+  const rollResultModal = document.getElementById('roll-result-modal');
+  if (rollResultModal) {
+    rollResultModal.addEventListener('click', (e) => {
+      if (e.target === rollResultModal) {
+        rollResultModal.classList.remove('show');
+      }
+    });
+  }
 }
 
 function setupPlayerSelect() {
@@ -279,19 +329,10 @@ function setupPhaseSelect() {
 }
 
 function updateTargetDisplay() {
-  const targetInput = document.getElementById('target-value');
-  if (!targetInput) return;
+  const targetLabel = document.getElementById('target-value');
+  if (!targetLabel) return;
   
-  const isLocked = phaseTargetLocked[currentPhaseId];
-  targetInput.value = phaseTargets[currentPhaseId];
-  targetInput.disabled = isLocked;
-  if (isLocked) {
-    targetInput.style.backgroundColor = '#f0f0f0';
-    targetInput.style.color = '#e74c3c';
-  } else {
-    targetInput.style.backgroundColor = '#f0f0f0';
-    targetInput.style.color = '';
-  }
+  targetLabel.textContent = phaseTargets[currentPhaseId];
 }
 
 function updateCurrentTotal() {
@@ -300,7 +341,7 @@ function updateCurrentTotal() {
 
   const currentHistory = phaseHistories[currentPhaseId];
   const total = currentHistory.reduce((sum, record) => {
-    if (record.camp === '陣営B') return sum;
+    if (record.camp === '人狼側') return sum;
     return sum + record.total;
   }, 0);
   totalSpan.textContent = total;
@@ -386,7 +427,7 @@ function updateLatestRollDisplay() {
 }
 
 function judgeResult() {
-  const target = parseInt(document.getElementById('target-value').value, 10) || 0;
+  const target = phaseTargets[currentPhaseId] || 0;
   const total = parseInt(document.getElementById('current-total').textContent, 10) || 0;
   const judgeModal = document.getElementById('judge-modal');
   const judgeTitle = document.getElementById('judge-title');
@@ -435,13 +476,13 @@ function setupCampOptions() {
   label.textContent = '陣営:';
   campOptionsDiv.appendChild(label);
 
-  ['陣営A', '陣営B'].forEach(camp => {
+  ['王国側', '人狼側'].forEach(camp => {
     const campLabel = document.createElement('label');
     const input = document.createElement('input');
     input.type = 'radio';
     input.name = 'camp';
     input.value = camp;
-    if (camp === '陣営A') input.checked = true;
+    if (camp === '王国側') input.checked = true;
     campLabel.appendChild(input);
     campLabel.appendChild(document.createTextNode(camp));
     campOptionsDiv.appendChild(campLabel);
@@ -664,7 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (campRadio) {
           camp = campRadio.value;
           playerSettings[playerName].camp = camp;
-          if (camp === '陣営B') {
+          if (camp === '人狼側') {
             phaseTargets[currentPhaseId] += total;
             updateTargetDisplay();
           }
@@ -687,6 +728,9 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('injury').textContent = `負傷: ${injuryCount}`;
       updateCurrentTotal();
       renderHistory();
+      
+      // ロール結果ポップアップを表示
+      showRollResultPopup(playerName, rollLogs, total, injuryCount);
       updateMaxPlayerDisplay();
     });
   }
@@ -789,16 +833,6 @@ document.addEventListener('DOMContentLoaded', () => {
         resultMsg.textContent = '失敗…';
         resultMsg.style.color = '#e74c3c';
       }
-    });
-  }
-
-  const targetValueInput = document.getElementById('target-value');
-  if (targetValueInput) {
-    targetValueInput.addEventListener('change', function () {
-      const value = parseInt(this.value, 10) || 0;
-      phaseTargets[currentPhaseId] = value;
-      phaseTargetLocked[currentPhaseId] = true;
-      updateTargetDisplay();
     });
   }
 

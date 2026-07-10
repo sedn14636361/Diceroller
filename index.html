@@ -27,8 +27,8 @@
 
       <div class="target-total-banner">
         <div class="total-display-large-target">
-          <label for="target-value" class="text-part-target">目標値</label>
-          <input type="number" id="target-value" class="num-part-target" min="0" value="0">
+          <label class="text-part-target">目標値</label>
+          <label id="target-value" class="num-part-total">0</label>
         </div>
         <div class="vs-badge">VS</div>
         <div class="total-display-large-total">
@@ -234,6 +234,23 @@
       <div id="modal-log" class="log-display"></div>
       <div id="modal-total"></div>
       <div id="modal-injury"></div>
+    </div>
+  </div>
+
+  <div id="roll-result-modal" class="roll-result-modal">
+    <div class="roll-result-content">
+      <div id="roll-player-name" class="roll-player-name"></div>
+      <div id="roll-dice-display" class="roll-dice-display"></div>
+      <div class="roll-result-bottom">
+        <div class="roll-total-box">
+          <div class="roll-total-label">合計</div>
+          <div id="roll-total-value" class="roll-total-value">0</div>
+        </div>
+        <div class="roll-injury-box">
+          <div class="roll-injury-label">負傷</div>
+          <div id="roll-injury-value" class="roll-injury-value">0</div>
+        </div>
+      </div>
     </div>
   </div>
 
