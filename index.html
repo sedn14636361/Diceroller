@@ -27,8 +27,8 @@
 
       <div class="target-total-banner">
         <div class="total-display-large-target">
-          <label for="target-value" class="text-part-target">目標値</label>
-          <input type="number" id="target-value" class="num-part-target" min="0" value="0">
+          <label class="text-part-target">目標値</label>
+          <label id="target-value" class="num-part-total">0</label>
         </div>
         <div class="vs-badge">VS</div>
         <div class="total-display-large-total">
@@ -66,7 +66,7 @@
                 <label><input type="checkbox" name="critical" value="3"> 3</label>
                 <label><input type="checkbox" name="critical" value="4"> 4</label>
                 <label><input type="checkbox" name="critical" value="5"> 5</label>
-                <label><input type="checkbox" name="critical" value="6"> 6</label>
+                <label><input type="checkbox" name="critical" value="6" checked> 6</label>
               </div>
             </div>
 
@@ -117,7 +117,7 @@
                 <label><input type="checkbox" name="critical-1" value="3"> 3</label>
                 <label><input type="checkbox" name="critical-1" value="4"> 4</label>
                 <label><input type="checkbox" name="critical-1" value="5"> 5</label>
-                <label><input type="checkbox" name="critical-1" value="6"> 6</label>
+                <label><input type="checkbox" name="critical-1" value="6" checked> 6</label>
               </div>
             </div>
             <div class="duel-result-display">
@@ -147,7 +147,7 @@
                 <label><input type="checkbox" name="critical-2" value="3"> 3</label>
                 <label><input type="checkbox" name="critical-2" value="4"> 4</label>
                 <label><input type="checkbox" name="critical-2" value="5"> 5</label>
-                <label><input type="checkbox" name="critical-2" value="6"> 6</label>
+                <label><input type="checkbox" name="critical-2" value="6" checked> 6</label>
               </div>
             </div>
             <div class="duel-result-display">
@@ -207,6 +207,9 @@
           <label class="phase-option"><input type="radio" name="timer-phase" value="第三交渉フェイズ"> 第三交渉フェイズ</label>
         </div>
 
+        <div id="timer-phase-display" class="timer-phase-display">第一交渉フェイズ</div>
+        <div id="timer-display" class="timer-display">20:00</div>
+
         <div class="timer-controls">
           <div class="time-inputs">
             <div><label>分: <input type="number" id="timer-minutes" min="0" value="20"></label></div>
@@ -232,8 +235,92 @@
       <span class="close">&times;</span>
       <h3 id="modal-title">詳細</h3>
       <div id="modal-log" class="log-display"></div>
-      <div id="modal-total"></div>
-      <div id="modal-injury"></div>
+      <div class="detail-summary-row">
+        <div id="modal-total"></div>
+        <button type="button" id="detail-flip-enable-btn" class="dice-flip-enable-btn" aria-label="ダイス反転を有効にする" title="ダイス反転を有効にする"></button>
+        <div id="modal-injury"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="roll-result-modal" class="roll-result-modal">
+    <div class="roll-result-content">
+      <span class="close">&times;</span>
+      <div id="roll-player-name" class="roll-player-name"></div>
+      <div id="roll-dice-display" class="roll-dice-display"></div>
+      <div class="roll-result-bottom">
+        <div class="roll-total-box">
+          <div class="roll-total-label">合計</div>
+          <div id="roll-total-value" class="roll-total-value">0</div>
+        </div>
+        <button type="button" id="roll-flip-enable-btn" class="dice-flip-enable-btn" aria-label="ダイス反転を有効にする" title="ダイス反転を有効にする"></button>
+        <div class="roll-injury-box">
+          <div class="roll-injury-label">負傷</div>
+          <div id="roll-injury-value" class="roll-injury-value">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="duel-result-modal" class="roll-result-modal">
+    <div class="roll-result-content roll-result-content--duel">
+      <span class="close">&times;</span>
+      <div id="duel-modal-title" class="roll-player-name">決闘結果</div>
+      <div class="duel-modal-grid">
+        <section class="duel-modal-panel">
+          <h4 id="duel-modal-player-name-1" class="duel-modal-player-name">受動側</h4>
+          <div id="duel-modal-dice-display-1" class="roll-dice-display duel-modal-dice-display"></div>
+          <div class="roll-result-bottom duel-modal-summary">
+            <div class="roll-total-box">
+              <div class="roll-total-label">合計</div>
+              <div id="duel-modal-total-1" class="roll-total-value">0</div>
+            </div>
+            <button type="button" id="duel-flip-enable-btn-1" class="dice-flip-enable-btn" aria-label="ダイス反転を有効にする" title="ダイス反転を有効にする"></button>
+            <div class="roll-injury-box">
+              <div class="roll-injury-label">負傷</div>
+              <div id="duel-modal-injury-1" class="roll-injury-value">0</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="duel-modal-panel">
+          <h4 id="duel-modal-player-name-2" class="duel-modal-player-name">能動側</h4>
+          <div id="duel-modal-dice-display-2" class="roll-dice-display duel-modal-dice-display"></div>
+          <div class="roll-result-bottom duel-modal-summary">
+            <div class="roll-total-box">
+              <div class="roll-total-label">合計</div>
+              <div id="duel-modal-total-2" class="roll-total-value">0</div>
+            </div>
+            <button type="button" id="duel-flip-enable-btn-2" class="dice-flip-enable-btn" aria-label="ダイス反転を有効にする" title="ダイス反転を有効にする"></button>
+            <div class="roll-injury-box">
+              <div class="roll-injury-label">負傷</div>
+              <div id="duel-modal-injury-2" class="roll-injury-value">0</div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div id="duel-modal-message" class="duel-modal-message"></div>
+    </div>
+  </div>
+
+  <div id="test-result-modal" class="roll-result-modal">
+    <div class="roll-result-content roll-result-content--test">
+      <span class="close">&times;</span>
+      <div id="test-modal-title" class="roll-player-name">判定結果</div>
+      <div id="test-modal-player-name" class="test-modal-player-name"></div>
+      <div id="test-modal-dice-display" class="roll-dice-display"></div>
+      <div class="roll-result-bottom test-result-bottom">
+        <div class="roll-total-box">
+          <div class="roll-total-label">達成値</div>
+          <div id="test-modal-total" class="roll-total-value">0</div>
+        </div>
+        <button type="button" id="test-flip-enable-btn" class="dice-flip-enable-btn" aria-label="ダイス反転を有効にする" title="ダイス反転を有効にする"></button>
+        <div class="roll-injury-box">
+          <div class="roll-injury-label">目標値</div>
+          <div id="test-modal-target" class="roll-injury-value">0</div>
+        </div>
+      </div>
+      <div id="test-modal-message" class="test-modal-message"></div>
     </div>
   </div>
 
