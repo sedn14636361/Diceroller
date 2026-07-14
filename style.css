@@ -118,10 +118,6 @@ color: #e74c3c;
 width: 4rem;
 margin: auto auto auto auto;
 text-align: center;
-appearance: textfield!important;
--webkit-appearance: none!important;
-margin: 0!important;
--moz-appearance: textfield!important;
 }
 
 .text-part-total {
@@ -137,9 +133,11 @@ text-align: center;
 font-size: 2.2rem;
 font-weight: bold;
 color: #e74c3c;
+display: flex;
 width: 4rem;
 margin: auto auto auto auto;
-text-align: center;
+justify-content: center; /* 左右の中央揃え */
+align-items: center;     /* 上下の中央揃え */
 }
 
 .num-part-total {
@@ -151,7 +149,6 @@ width: 4rem;
 margin: auto auto auto auto;
 justify-content: center; /* 左右の中央揃え */
 align-items: center;     /* 上下の中央揃え */
-height: 44px;
 }
 
 input.num-part {
@@ -183,15 +180,13 @@ text-align: center;
 }
 
 #target-value {
-  width: 80px;
-  font-size: 2.4rem;
   font-weight: bold;
-  color: #e74c3c;
-  text-align: center;
-  box-sizing: content-box;
-  border: solid #5b6dcd 0px;
-  padding: 0px;
+  color: #e74c3c;;
+  display: flex;
+  width: 4rem;
   margin: auto auto auto auto;
+  justify-content: center; /* 左右の中央揃え */
+  align-items: center;     /* 上下の中央揃え */
 }
 
 .total-display {
@@ -373,6 +368,73 @@ button:hover {
   animation: fadeIn 0.5s ease forwards;
 }
 
+.dice-face.dice-face-clickable {
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.dice-face.dice-face-clickable:hover {
+  transform: translateY(-1px) scale(1.03);
+  filter: brightness(1.05);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.24);
+}
+
+.dice-face.dice-face-clickable:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.dice-face.modified:not(.bonus-roll) {
+  background-color: #27ae60;
+  border: none;
+}
+
+.dice-face.bonus-roll {
+  border: 3px solid #8e44ad;
+  box-sizing: border-box;
+}
+
+.dice-face.bonus-roll.modified {
+  background-color: #27ae60;
+}
+
+.dice-bonus-separator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #27ae60;
+  font-weight: bold;
+  font-size: 0.9rem;
+  padding: 0 2px;
+  user-select: none;
+}
+
+.dice-flip-enable-btn {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin: auto 6px;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.dice-flip-enable-btn:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+
+.detail-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 .dice-face.normal {
   background-color: #007cba;
 }
@@ -410,7 +472,7 @@ button:hover {
 }
 
 .history-item {
-  padding: 8px 12px;
+  padding: 8px 12px 8px 12px;
   margin-bottom: 8px;
   background: #f9f9f9;
   border-left: 4px solid #007cba;
@@ -418,8 +480,11 @@ button:hover {
   cursor: pointer;
   transition: background 0.2s;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  position: relative;
+  padding-right: 36px;
   opacity: 0;
   animation: fadeIn 0.5s ease forwards;
 }
@@ -430,12 +495,14 @@ button:hover {
 
 .history-player {
   font-weight: bold;
-  margin-bottom: 2px;
+  display: block;
 }
 
 .history-total {
   font-size: 0.9rem;
   color: #666;
+  display: block;
+  line-height: 1.5;
 }
 
 .delete-btn {
@@ -447,7 +514,10 @@ button:hover {
   height: 24px;
   cursor: pointer;
   font-size: 0.8rem;
-  margin-left: auto;
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -742,6 +812,24 @@ color: #e74c3c !important;
   gap: 8px;
 }
 
+#timer-reset-btn {
+  background-color: #e74c3c;
+}
+
+#timer-reset-btn:hover {
+  background-color: #c0392b;
+}
+
+.timer-panel .time-inputs input:disabled,
+.timer-panel .timer-phase-chooser input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.timer-panel.running .time-inputs {
+  opacity: 0.8;
+}
+
 /* Timer modal styles */
 .timer-modal-content {
   text-align: center;
@@ -822,4 +910,252 @@ color: #e74c3c !important;
 .spacer {
   display: block;
   height: 10px;
+}
+
+/* ロール結果ポップアップ */
+.roll-result-modal {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  position: fixed;
+  z-index: 1500;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.roll-result-modal.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.roll-result-content {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 16px;
+  padding: 40px 50px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  max-width: 600px;
+  width: 90%;
+  text-align: center;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+  animation: popupAppear 0.4s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.roll-result-modal.show .roll-result-content {
+  transform: scale(1);
+}
+
+@keyframes popupAppear {
+  from {
+    transform: scale(0.8) translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.roll-player-name {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 30px;
+  letter-spacing: 0.5px;
+}
+
+.roll-dice-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+  min-height: 80px;
+  max-height: 320px;
+  overflow-y: auto;
+  align-content: flex-start;
+  padding-right: 6px;
+}
+
+.roll-dice-display .dice-face {
+  width: 60px;
+  height: 60px;
+  font-size: 1.8rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.roll-dice-display .roll-separator {
+  width: 2px;
+  height: 50px;
+  background-color: #ccc;
+  margin: 0 5px;
+}
+
+.roll-result-content--duel {
+  max-width: 820px;
+}
+
+.roll-result-content--test {
+  max-width: 680px;
+}
+
+.duel-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 65px;
+}
+
+.duel-modal-panel {
+  background: white;
+  border-radius: 14px;
+  padding: 14px 14px 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.duel-modal-player-name,
+.test-modal-player-name {
+  margin: 0 0 8px 0;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.duel-modal-dice-display {
+  margin-bottom: 0;
+  max-height: 220px;
+}
+
+.duel-modal-summary,
+.test-result-bottom {
+  gap: 8px;
+}
+
+.duel-modal-summary {
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.test-modal-message {
+  font-weight: bold;
+}
+
+.duel-modal-summary .roll-total-box,
+.duel-modal-summary .roll-injury-box {
+  min-width: 0;
+  padding: 14px 18px;
+  flex: 1 1 0;
+}
+
+.duel-modal-summary .roll-total-label,
+.duel-modal-summary .roll-injury-label {
+  font-size: 0.95rem;
+}
+
+.duel-modal-summary .roll-total-value,
+.duel-modal-summary .roll-injury-value {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.duel-modal-message,
+.test-modal-message {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-top: 6px;
+  text-align: center;
+}
+
+.duel-modal-message {
+  display: block;
+  width: 100%;
+  min-height: 1.6em;
+  margin-top: 16px;
+  padding-top: 10px;
+}
+
+.test-modal-message {
+  min-height: 1.6em;
+}
+
+@media (max-width: 720px) {
+  .duel-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .roll-result-content {
+    padding: 24px 14px;
+  }
+
+  .roll-dice-display {
+    max-height: 260px;
+  }
+
+  .duel-modal-summary .roll-total-box,
+  .duel-modal-summary .roll-injury-box {
+    padding: 12px 10px;
+  }
+
+  .duel-modal-summary .roll-total-value,
+  .duel-modal-summary .roll-injury-value {
+    font-size: 2rem;
+  }
+}
+
+.roll-result-bottom {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+}
+
+.roll-total-box,
+.roll-injury-box {
+  background: white;
+  border-radius: 12px;
+  padding: 20px 35px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  min-width: 140px;
+}
+
+.roll-total-label,
+.roll-injury-label {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #666;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.roll-total-value {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #007cba;
+}
+
+.roll-injury-value {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #e74c3c;
 }

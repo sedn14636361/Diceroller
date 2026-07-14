@@ -1,9 +1,9 @@
 const Players = [
-  'HO1 国王 ユリウス・フラウニア', 'HO2第一王妃 セレティ・フラウニア', 'HO3第二王妃 セレティ・フラウニア', 'HO4第一王子 イズガル・フラウニア',
-  'HO5 第二王子 ケティ・フラウニア', 'HO6第三王子 リニス・フラウニア', 'HO7第一王女 クレシャ・フラウニア', 'HO8第二王女 セフィーレ・フラウニア',
-  'HO9 孤高の騎士 リチャード', 'HO10 不死の騎士 セルム', 'HO11 戦旗の騎士 エリン', 'HO12 見習い預言者 レシア',
+  'HO1 国王 ユリウス・フラウニア', 'HO2 第一王妃 セレティ・フラウニア', 'HO3 第二王妃 セレティ・フラウニア', 'HO4 第一王子 イズガル・フラウニア',
+  'HO5 第二王子 ケティ・フラウニア', 'HO6 第三王子 リニス・フラウニア', 'HO7 第一王女 クレシャ・フラウニア', 'HO8 第二王女 セフィーレ・フラウニア',
+  'HO9 孤高の騎士 リチャード', 'HO10 不死の騎士 デューク', 'HO11 戦旗の騎士 エリン', 'HO12 見習い預言者 レシア',
   'HO13 霊媒師 ウガラガ', 'HO14 預言者の母 ミレリ', 'HO15 衛兵隊長 ドレンディア', 'HO16 王子の近衛兵 スフィム',
-  'HO17 宝石商 カクタス', 'HO18 武器商人 ダンヴァル', 'HO19 小物商人 ルヴィン', 'HO20 流浪の旅人 ルファ',
+  'HO17 宝石商 カクタス', 'HO18 武器商人 ダンヴァル', 'HO19 古物商 ルヴィン', 'HO20 流浪の旅人 ルファ',
   'HO21 パン屋 コルテス', 'HO22 新聞配達人 セナ', 'HO23 長老 ロウリム', 'HO24 湖の魔女'
 ];
 
@@ -59,6 +59,92 @@ function isCritical(value, criticalValues) {
   return criticalValues.includes(value);
 }
 
+function flipDiceValue(value) {
+  return 7 - value;
+}
+
+function createDiceResult(value, criticalValues = []) {
+  return {
+    value,
+    modified: false,
+    bonusRoll: null,
+    criticalValues: [...criticalValues],
+    bonusGenerated: false
+  };
+}
+
+function createBonusRoll(criticalValues = []) {
+  const bonusRoll = createDiceResult(rollD6(), criticalValues);
+  bonusRoll.bonusGenerated = true;
+  if (isCritical(bonusRoll.value, criticalValues)) {
+    bonusRoll.bonusRoll = createBonusRoll(criticalValues);
+  }
+  return bonusRoll;
+}
+
+function sumDiceResult(result) {
+  let total = result.value;
+  if (result.bonusRoll) {
+    total += sumDiceResult(result.bonusRoll);
+  }
+  return total;
+}
+
+function countInjuriesFromResult(result, rollIndex) {
+  let injuryCount = 0;
+  const isBaseInjury = rollIndex === 0 && !result.bonusGenerated && !result.modified;
+  const isFlippedInjury = result.modified;
+
+  if (result.value === 1 && (isBaseInjury || isFlippedInjury)) {
+    injuryCount += 1;
+  }
+
+  if (result.bonusRoll) {
+    injuryCount += countInjuriesFromResult(result.bonusRoll, rollIndex);
+  }
+
+  return injuryCount;
+}
+
+function applyDiceFlip(result) {
+  result.modified = true;
+  result.value = flipDiceValue(result.value);
+  const criticalValues = result.criticalValues || [];
+  result.bonusRoll = isCritical(result.value, criticalValues) ? createBonusRoll(criticalValues) : null;
+}
+
+function recalculateRollOutcome(rollLogs, criticalValues, ignoreInjury = false) {
+  let total = 0;
+  let injuryCount = 0;
+
+  rollLogs.forEach((roll, rollIndex) => {
+    roll.forEach(result => {
+      total += sumDiceResult(result);
+      if (!ignoreInjury) {
+        injuryCount += countInjuriesFromResult(result, rollIndex);
+      }
+    });
+  });
+
+  return { total, injuryCount };
+}
+
+function recalculatePlayerInjuries() {
+  Players.forEach(player => {
+    if (playerSettings[player]) {
+      playerSettings[player].injury = 0;
+    }
+  });
+
+  Object.values(phaseHistories).forEach(history => {
+    history.forEach(record => {
+      if (playerSettings[record.player]) {
+        playerSettings[record.player].injury += record.injury || 0;
+      }
+    });
+  });
+}
+
 function rollDice(count, criticalValues) {
   let total = 0;
   let injuryCount = 0;
@@ -73,7 +159,14 @@ function rollDice(count, criticalValues) {
     for (let i = 0; i < currentRolls; i++) {
       const value = rollD6();
       const isCrit = isCritical(value, criticalValues);
-      results.push({ value, isCrit });
+      results.push({
+        value,
+        isCrit,
+        modified: false,
+        bonusRoll: null,
+        criticalValues: [...criticalValues],
+        bonusGenerated: false
+      });
 
       if (isFirstRoll && value === 1 && !isCrit) {
         injuryCount++;
@@ -92,10 +185,52 @@ function rollDice(count, criticalValues) {
   return { total, rollLogs, injuryCount };
 }
 
-function renderLog(rollLogs, targetId = 'log', ignoreInjury = false) {
+function renderLog(rollLogs, targetId = 'log', ignoreInjury = false, criticalValues = [], onDiceClick = null) {
   const logElement = document.getElementById(targetId);
   if (!logElement) return;
   logElement.innerHTML = '';
+
+  function appendDiceResult(result, rollIndex) {
+    const diceFace = document.createElement('div');
+    const isCrit = isCritical(result.value, criticalValues);
+    let faceClass = isCrit ? 'critical' : 'normal';
+
+    // ignoreInjuryがfalseの時（戦争・決闘モード）のみ、1の出目を赤くする
+    const isInjury = result.value === 1 && !ignoreInjury && ((rollIndex === 0 && !result.bonusGenerated && !result.modified) || result.modified);
+    if (isInjury && (!result.bonusGenerated || result.modified)) {
+      faceClass = 'injury';
+    }
+
+    diceFace.className = `dice-face ${faceClass}${result.modified ? ' modified' : ''}`;
+    if (result.bonusGenerated) {
+      diceFace.classList.add('bonus-roll');
+    }
+    diceFace.textContent = result.value;
+    if (typeof onDiceClick === 'function' && !result.modified) {
+      diceFace.classList.add('dice-face-clickable');
+      diceFace.setAttribute('role', 'button');
+      diceFace.setAttribute('tabindex', '0');
+      diceFace.title = 'クリックで上下反転';
+      diceFace.addEventListener('click', () => {
+        onDiceClick(result);
+      });
+      diceFace.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onDiceClick(result);
+        }
+      });
+    }
+    logElement.appendChild(diceFace);
+
+    if (result.bonusRoll) {
+      const separator = document.createElement('div');
+      separator.className = 'dice-bonus-separator';
+      separator.textContent = '＋';
+      logElement.appendChild(separator);
+      appendDiceResult(result.bonusRoll, rollIndex);
+    }
+  }
 
   rollLogs.forEach((roll, index) => {
     if (index > 0) {
@@ -105,19 +240,176 @@ function renderLog(rollLogs, targetId = 'log', ignoreInjury = false) {
     }
 
     roll.forEach(result => {
-      const diceFace = document.createElement('div');
-      let faceClass = result.isCrit ? 'critical' : 'normal';
-      
-      // ignoreInjuryがfalseの時（戦争・決闘モード）のみ、1の出目を赤くする
-      if (result.value === 1 && index === 0 && !result.isCrit && !ignoreInjury) {
-        faceClass = 'injury';
-      }
-      
-      diceFace.className = `dice-face ${faceClass}`;
-      diceFace.textContent = result.value;
-      logElement.appendChild(diceFace);
+      appendDiceResult(result, index);
     });
   });
+}
+
+function showRollResultPopup(playerName, rollLogs, total, injury, criticalValues = [], onDiceClick = null, session = null, onRefresh = null) {
+  const modal = document.getElementById('roll-result-modal');
+  if (!modal) return;
+  const flipState = session || { flipUnlocked: false };
+  const flipButton = document.getElementById('roll-flip-enable-btn');
+
+  // プレイヤー名を設定
+  document.getElementById('roll-player-name').textContent = playerName;
+  
+  // ダイス結果を表示
+  renderLog(rollLogs, 'roll-dice-display', false, criticalValues, flipState.flipUnlocked ? onDiceClick : null);
+  
+  // 合計と負傷を表示
+  document.getElementById('roll-total-value').textContent = total;
+  document.getElementById('roll-injury-value').textContent = injury;
+
+  if (flipButton) {
+    flipButton.disabled = !!flipState.flipUnlocked;
+    flipButton.onclick = () => {
+      if (flipState.flipUnlocked) return;
+      flipState.flipUnlocked = true;
+      flipButton.disabled = true;
+      if (typeof onRefresh === 'function') {
+        onRefresh();
+      }
+    };
+  }
+  
+  // モーダルを表示
+  modal.classList.add('show');
+}
+
+function showDuelRollResultPopup(name1, result1, name2, result2, onAfterFlip = null) {
+  const modal = document.getElementById('duel-result-modal');
+  if (!modal) return;
+  const flipButton1 = document.getElementById('duel-flip-enable-btn-1');
+  const flipButton2 = document.getElementById('duel-flip-enable-btn-2');
+
+  document.getElementById('duel-modal-player-name-1').textContent = name1;
+  document.getElementById('duel-modal-player-name-2').textContent = name2;
+
+  renderLog(result1.rollLogs, 'duel-modal-dice-display-1', false, result1.criticalValues || [], result1.flipUnlocked ? (result) => {
+    applyDiceFlip(result);
+    updateDuelResultDerivedValues(result1);
+    updateDuelResultDerivedValues(result2);
+    if (typeof onAfterFlip === 'function') onAfterFlip();
+  } : null);
+  document.getElementById('duel-modal-total-1').textContent = `${result1.total}`;
+  document.getElementById('duel-modal-injury-1').textContent = `${result1.injuryCount}`;
+
+  renderLog(result2.rollLogs, 'duel-modal-dice-display-2', false, result2.criticalValues || [], result2.flipUnlocked ? (result) => {
+    applyDiceFlip(result);
+    updateDuelResultDerivedValues(result1);
+    updateDuelResultDerivedValues(result2);
+    if (typeof onAfterFlip === 'function') onAfterFlip();
+  } : null);
+  document.getElementById('duel-modal-total-2').textContent = `${result2.total}`;
+  document.getElementById('duel-modal-injury-2').textContent = `${result2.injuryCount}`;
+
+  if (flipButton1) {
+    flipButton1.disabled = !!result1.flipUnlocked;
+    flipButton1.onclick = () => {
+      if (result1.flipUnlocked) return;
+      result1.flipUnlocked = true;
+      flipButton1.disabled = true;
+      if (typeof onAfterFlip === 'function') onAfterFlip();
+    };
+  }
+
+  if (flipButton2) {
+    flipButton2.disabled = !!result2.flipUnlocked;
+    flipButton2.onclick = () => {
+      if (result2.flipUnlocked) return;
+      result2.flipUnlocked = true;
+      flipButton2.disabled = true;
+      if (typeof onAfterFlip === 'function') onAfterFlip();
+    };
+  }
+
+  const resultMsg = document.getElementById('duel-modal-message');
+  if (result1.total > result2.total) {
+    resultMsg.textContent = `${name1} の勝利！`;
+    resultMsg.style.color = '#e74c3c';
+  } else if (result2.total > result1.total) {
+    resultMsg.textContent = `${name2} の勝利！`;
+    resultMsg.style.color = '#007cba';
+  } else {
+    resultMsg.textContent = '引き分け！';
+    resultMsg.style.color = '#333';
+  }
+
+  modal.classList.add('show');
+}
+
+function showTestRollResultPopup(playerName, rollLogs, total, target, modifier, isSuccess, onDiceClick = null, session = null, onRefresh = null) {
+  const modal = document.getElementById('test-result-modal');
+  if (!modal) return;
+  const flipState = session || { flipUnlocked: false };
+  const flipButton = document.getElementById('test-flip-enable-btn');
+
+  document.getElementById('test-modal-player-name').textContent = playerName;
+  renderLog(rollLogs, 'test-modal-dice-display', true, [], flipState.flipUnlocked ? onDiceClick : null);
+
+  const finalTotal = total + (isNaN(modifier) ? 0 : modifier);
+  document.getElementById('test-modal-total').textContent = String(finalTotal);
+  document.getElementById('test-modal-target').textContent = String(target);
+
+  const resultMsg = document.getElementById('test-modal-message');
+  if (isSuccess) {
+    resultMsg.textContent = '成功！';
+    resultMsg.style.color = '#27ae60';
+  } else {
+    resultMsg.textContent = '失敗…';
+    resultMsg.style.color = '#e74c3c';
+  }
+
+  if (flipButton) {
+    flipButton.disabled = !!flipState.flipUnlocked;
+    flipButton.onclick = () => {
+      if (flipState.flipUnlocked) return;
+      flipState.flipUnlocked = true;
+      flipButton.disabled = true;
+      if (typeof onRefresh === 'function') {
+        onRefresh();
+      }
+    };
+  }
+
+  modal.classList.add('show');
+}
+
+function updateWarRecordDerivedValues(record) {
+  const criticalValues = record.criticalValues || [];
+  const outcome = recalculateRollOutcome(record.rollLogs, criticalValues, false);
+  record.total = outcome.total;
+  record.injury = outcome.injuryCount;
+  return outcome;
+}
+
+function updateDuelResultDerivedValues(result) {
+  const criticalValues = result.criticalValues || [];
+  const outcome = recalculateRollOutcome(result.rollLogs, criticalValues, false);
+  result.total = outcome.total;
+  result.injuryCount = outcome.injuryCount;
+  return outcome;
+}
+
+function refreshWarPhaseState() {
+  recalculatePlayerInjuries();
+
+  if (currentPhaseId === 'warFinal') {
+    phaseTargets[currentPhaseId] = phaseHistories[currentPhaseId].reduce((sum, record) => {
+      return record.camp === '人狼側' ? sum + (record.total || 0) : sum;
+    }, 0);
+    updateTargetDisplay();
+  }
+
+  updateCurrentTotal();
+  renderHistory();
+
+  if (currentMode === 'war') {
+    updateMaxPlayerDisplay();
+  }
+
+  updateLatestRollDisplay();
 }
 
 function renderHistory() {
@@ -137,11 +429,11 @@ function renderHistory() {
     
     let playerText = record.player;
 
-    if (record.camp === '陣営A') {
+    if (record.camp === '王国側') {
       playerDiv.classList.add('camp-a');
       borderColor = '#007cba';
       playerText = record.player;
-    } else if (record.camp === '陣営B') {
+    } else if (record.camp === '人狼側') {
       playerDiv.classList.add('camp-b');
       borderColor = '#e74c3c';
       playerText = record.player;
@@ -152,7 +444,7 @@ function renderHistory() {
 
     const totalDiv = document.createElement('div');
     totalDiv.className = 'history-total';
-    totalDiv.textContent = `合計: ${record.total} / 負傷: ${record.injury}`;
+    totalDiv.innerHTML = `合計: ${record.total}<br>負傷: ${record.injury}`;
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete-btn Orion_delete-circle';
@@ -193,12 +485,28 @@ function showDetailModal(record) {
   const modalTitle = document.getElementById('modal-title');
   const modalTotal = document.getElementById('modal-total');
   const modalInjury = document.getElementById('modal-injury');
+  const flipButton = document.getElementById('detail-flip-enable-btn');
 
   modalTitle.textContent = `${record.player} の詳細結果`;
   modalTotal.textContent = `合計: ${record.total}`;
   modalInjury.textContent = `負傷: ${record.injury}`;
   
-  renderLog(record.rollLogs, 'modal-log');
+  renderLog(record.rollLogs, 'modal-log', false, record.criticalValues || [], record.flipUnlocked ? (result) => {
+    applyDiceFlip(result);
+    updateWarRecordDerivedValues(record);
+    refreshWarPhaseState();
+    showDetailModal(record);
+  } : null);
+
+  if (flipButton) {
+    flipButton.disabled = !!record.flipUnlocked;
+    flipButton.onclick = () => {
+      if (record.flipUnlocked) return;
+      record.flipUnlocked = true;
+      flipButton.disabled = true;
+      showDetailModal(record);
+    };
+  }
 
   showModal('detail-modal');
 }
@@ -216,7 +524,7 @@ function hideModal(id) {
 }
 
 function setupModal() {
-  const modals = document.querySelectorAll('.modal');
+  const modals = document.querySelectorAll('.modal, .roll-result-modal');
   modals.forEach(modal => {
     const closeBtn = modal.querySelector('.close');
     if (closeBtn) {
@@ -225,6 +533,34 @@ function setupModal() {
       });
     }
   });
+
+  // ロール結果モーダルのクリックイベント設定
+  const rollResultModal = document.getElementById('roll-result-modal');
+  if (rollResultModal) {
+    rollResultModal.addEventListener('click', (e) => {
+      if (e.target === rollResultModal) {
+        rollResultModal.classList.remove('show');
+      }
+    });
+  }
+
+  const duelResultModal = document.getElementById('duel-result-modal');
+  if (duelResultModal) {
+    duelResultModal.addEventListener('click', (e) => {
+      if (e.target === duelResultModal) {
+        duelResultModal.classList.remove('show');
+      }
+    });
+  }
+
+  const testResultModal = document.getElementById('test-result-modal');
+  if (testResultModal) {
+    testResultModal.addEventListener('click', (e) => {
+      if (e.target === testResultModal) {
+        testResultModal.classList.remove('show');
+      }
+    });
+  }
 }
 
 function setupPlayerSelect() {
@@ -279,19 +615,10 @@ function setupPhaseSelect() {
 }
 
 function updateTargetDisplay() {
-  const targetInput = document.getElementById('target-value');
-  if (!targetInput) return;
+  const targetLabel = document.getElementById('target-value');
+  if (!targetLabel) return;
   
-  const isLocked = phaseTargetLocked[currentPhaseId];
-  targetInput.value = phaseTargets[currentPhaseId];
-  targetInput.disabled = isLocked;
-  if (isLocked) {
-    targetInput.style.backgroundColor = '#f0f0f0';
-    targetInput.style.color = '#e74c3c';
-  } else {
-    targetInput.style.backgroundColor = '#f0f0f0';
-    targetInput.style.color = '';
-  }
+  targetLabel.textContent = phaseTargets[currentPhaseId];
 }
 
 function updateCurrentTotal() {
@@ -300,7 +627,7 @@ function updateCurrentTotal() {
 
   const currentHistory = phaseHistories[currentPhaseId];
   const total = currentHistory.reduce((sum, record) => {
-    if (record.camp === '陣営B') return sum;
+    if (record.camp === '人狼側') return sum;
     return sum + record.total;
   }, 0);
   totalSpan.textContent = total;
@@ -370,23 +697,41 @@ function updateLatestRollDisplay() {
   const logElement = document.getElementById('log');
   const totalElement = document.getElementById('total');
   const injuryElement = document.getElementById('injury');
+  const flipButton = document.getElementById('main-flip-enable-btn');
 
   if (!logElement || !totalElement || !injuryElement) return;
 
   if (history && history.length > 0) {
     const latest = history[0];
-    renderLog(latest.rollLogs, 'log');
+    renderLog(latest.rollLogs, 'log', false, latest.criticalValues || [], latest.flipUnlocked ? (result) => {
+      applyDiceFlip(result);
+      updateWarRecordDerivedValues(latest);
+      refreshWarPhaseState();
+    } : null);
     totalElement.textContent = `合計: ${latest.total}`;
     injuryElement.textContent = `負傷: ${latest.injury}`;
+
+    if (flipButton) {
+      flipButton.disabled = !!latest.flipUnlocked;
+      flipButton.onclick = () => {
+        if (latest.flipUnlocked) return;
+        latest.flipUnlocked = true;
+        flipButton.disabled = true;
+        updateLatestRollDisplay();
+      };
+    }
   } else {
     logElement.innerHTML = '';
     totalElement.textContent = '合計: 0';
     injuryElement.textContent = '負傷: 0';
+    if (flipButton) {
+      flipButton.disabled = true;
+    }
   }
 }
 
 function judgeResult() {
-  const target = parseInt(document.getElementById('target-value').value, 10) || 0;
+  const target = phaseTargets[currentPhaseId] || 0;
   const total = parseInt(document.getElementById('current-total').textContent, 10) || 0;
   const judgeModal = document.getElementById('judge-modal');
   const judgeTitle = document.getElementById('judge-title');
@@ -435,13 +780,13 @@ function setupCampOptions() {
   label.textContent = '陣営:';
   campOptionsDiv.appendChild(label);
 
-  ['陣営A', '陣営B'].forEach(camp => {
+  ['王国側', '人狼側'].forEach(camp => {
     const campLabel = document.createElement('label');
     const input = document.createElement('input');
     input.type = 'radio';
     input.name = 'camp';
     input.value = camp;
-    if (camp === '陣営A') input.checked = true;
+    if (camp === '王国側') input.checked = true;
     campLabel.appendChild(input);
     campLabel.appendChild(document.createTextNode(camp));
     campOptionsDiv.appendChild(campLabel);
@@ -479,6 +824,8 @@ function setupModeSwitch() {
         if (maxArea) maxArea.style.display = 'none';
         // ensure timer display is updated
         updateTimerDisplay();
+        updatePhaseDisplay();
+        updateTimerRunningUI();
       }
     });
   });
@@ -509,6 +856,25 @@ function updateTimerModalDisplay() {
   if (timeEl) timeEl.textContent = formatTime(remainingSeconds);
 }
 
+function updateTimerRunningUI() {
+  const panel = document.querySelector('#timer-mode-section .timer-panel');
+  const minInput = document.getElementById('timer-minutes');
+  const secInput = document.getElementById('timer-seconds');
+  const phaseRadios = document.querySelectorAll('input[name="timer-phase"]');
+
+  if (panel) panel.classList.toggle('running', timerRunning);
+  if (minInput) minInput.disabled = timerRunning;
+  if (secInput) secInput.disabled = timerRunning;
+  if (phaseRadios && phaseRadios.length > 0) {
+    phaseRadios.forEach(r => {
+      r.disabled = timerRunning;
+    });
+  }
+
+  // running中はフェイズ選択を隠して操作不能にする
+  togglePhaseChooser(!timerRunning);
+}
+
 function togglePhaseChooser(show) {
   const chooser = document.querySelector('.timer-phase-chooser');
   if (!chooser) return;
@@ -527,8 +893,7 @@ function startTimer() {
   if (remainingSeconds <= 0) setTimerFromInputs();
   if (remainingSeconds <= 0) return;
   timerRunning = true;
-  // hide phase chooser while running
-  togglePhaseChooser(false);
+  updateTimerRunningUI();
   // show timer modal
   updateTimerModalDisplay();
   showModal('timer-modal');
@@ -551,15 +916,14 @@ function pauseTimer() {
     clearInterval(timerInterval);
     timerInterval = null;
   }
-  // show phase chooser when paused/stopped
-  togglePhaseChooser(true);
+  updateTimerRunningUI();
   updateTimerModalDisplay();
 }
 
 function resetTimer() {
   pauseTimer();
   setTimerFromInputs();
-  togglePhaseChooser(true);
+  updateTimerRunningUI();
 }
 
 function setupTimer() {
@@ -591,8 +955,7 @@ function setupTimer() {
   }
   // initialize display
   setTimerFromInputs();
-  // ensure chooser visibility reflects current running state
-  togglePhaseChooser(!timerRunning);
+  updateTimerRunningUI();
 
   // modal buttons wiring
   const modalToggle = document.getElementById('timer-modal-toggle');
@@ -658,36 +1021,50 @@ document.addEventListener('DOMContentLoaded', () => {
         playerSettings[playerName].injury += injuryCount;
       }
 
+      const record = {
+        player: playerName,
+        total,
+        injury: injuryCount,
+        rollLogs: JSON.parse(JSON.stringify(rollLogs)),
+        criticalValues: [...criticalValues],
+        flipUnlocked: false,
+        phase: currentPhaseId,
+        camp: null,
+        timestamp: Date.now()
+      };
+
       let camp = null;
       if (currentPhaseId === 'warFinal') {
         const campRadio = document.querySelector('input[name="camp"]:checked');
         if (campRadio) {
           camp = campRadio.value;
           playerSettings[playerName].camp = camp;
-          if (camp === '陣営B') {
+          if (camp === '人狼側') {
             phaseTargets[currentPhaseId] += total;
             updateTargetDisplay();
           }
         }
       }
 
-      const currentHistory = phaseHistories[currentPhaseId];
-      currentHistory.unshift({
-        player: playerName,
-        total,
-        injury: injuryCount,
-        rollLogs: JSON.parse(JSON.stringify(rollLogs)),
-        phase: currentPhaseId,
-        camp,
-        timestamp: Date.now()
-      });
+      record.camp = camp;
 
-      renderLog(rollLogs, 'log');
-      document.getElementById('total').textContent = `合計: ${total}`;
-      document.getElementById('injury').textContent = `負傷: ${injuryCount}`;
-      updateCurrentTotal();
-      renderHistory();
-      updateMaxPlayerDisplay();
+      const currentHistory = phaseHistories[currentPhaseId];
+      currentHistory.unshift(record);
+
+      updateWarRecordDerivedValues(record);
+      refreshWarPhaseState();
+
+      // ロール結果ポップアップを表示
+      const rerenderWarPopup = () => {
+        showRollResultPopup(playerName, record.rollLogs, record.total, record.injury, record.criticalValues, (result) => {
+          applyDiceFlip(result);
+          updateWarRecordDerivedValues(record);
+          refreshWarPhaseState();
+          rerenderWarPopup();
+        }, record, rerenderWarPopup);
+      };
+
+      rerenderWarPopup();
     });
   }
 
@@ -719,26 +1096,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const result1 = rollDice(count1, critValues1);
       const result2 = rollDice(count2, critValues2);
+      result1.criticalValues = [...critValues1];
+      result2.criticalValues = [...critValues2];
+      result1.flipUnlocked = false;
+      result2.flipUnlocked = false;
 
-      renderLog(result1.rollLogs, 'duel-log-1');
-      document.getElementById('duel-total-1').textContent = `合計: ${result1.total}`;
-      document.getElementById('duel-injury-1').textContent = `負傷: ${result1.injuryCount}`;
+      const updateDuelWinnerMessage = () => {
+        const resultMsg = document.getElementById('duel-result-message');
+        if (result1.total > result2.total) {
+          resultMsg.textContent = `${name1} の勝利！`;
+          resultMsg.style.color = '#e74c3c';
+        } else if (result2.total > result1.total) {
+          resultMsg.textContent = `${name2} の勝利！`;
+          resultMsg.style.color = '#007cba';
+        } else {
+          resultMsg.textContent = '引き分け！';
+          resultMsg.style.color = '#333';
+        }
+      };
 
-      renderLog(result2.rollLogs, 'duel-log-2');
-      document.getElementById('duel-total-2').textContent = `合計: ${result2.total}`;
-      document.getElementById('duel-injury-2').textContent = `負傷: ${result2.injuryCount}`;
+      const rerenderDuelViews = () => {
+        renderLog(result1.rollLogs, 'duel-log-1', false, result1.criticalValues, (result) => {
+          applyDiceFlip(result);
+          updateDuelResultDerivedValues(result1);
+          updateDuelResultDerivedValues(result2);
+          rerenderDuelViews();
+        });
+        document.getElementById('duel-total-1').textContent = `合計: ${result1.total}`;
+        document.getElementById('duel-injury-1').textContent = `負傷: ${result1.injuryCount}`;
 
-      const resultMsg = document.getElementById('duel-result-message');
-      if (result1.total > result2.total) {
-        resultMsg.textContent = `${name1} の勝利！`;
-        resultMsg.style.color = '#e74c3c';
-      } else if (result2.total > result1.total) {
-        resultMsg.textContent = `${name2} の勝利！`;
-        resultMsg.style.color = '#007cba';
-      } else {
-        resultMsg.textContent = '引き分け！';
-        resultMsg.style.color = '#333';
-      }
+        renderLog(result2.rollLogs, 'duel-log-2', false, result2.criticalValues, (result) => {
+          applyDiceFlip(result);
+          updateDuelResultDerivedValues(result1);
+          updateDuelResultDerivedValues(result2);
+          rerenderDuelViews();
+        });
+        document.getElementById('duel-total-2').textContent = `合計: ${result2.total}`;
+        document.getElementById('duel-injury-2').textContent = `負傷: ${result2.injuryCount}`;
+
+        updateDuelWinnerMessage();
+        showDuelRollResultPopup(name1, result1, name2, result2, rerenderDuelViews);
+      };
+
+      rerenderDuelViews();
     });
   }
 
@@ -746,6 +1146,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (testForm) {
     testForm.addEventListener('submit', async function (e) {
       e.preventDefault();
+
+      const playerName = document.getElementById('test-player-name').value;
       
       const count = parseInt(document.getElementById('test-dice-count').value, 10);
       const target = parseInt(document.getElementById('test-target').value, 10);
@@ -767,38 +1169,50 @@ document.addEventListener('DOMContentLoaded', () => {
         rollLogs[0].push({ value: val, isCrit: false });
       }
 
-      const finalTotal = diceSum + (isNaN(modifier) ? 0 : modifier);
       const finalTarget = isNaN(target) ? 0 : target;
-      const isSuccess = finalTotal >= finalTarget;
 
-      renderLog(rollLogs, 'test-log', true);
-      
-      const totalDisplay = document.getElementById('test-total');
-      if (modifier !== 0) {
-        const sign = modifier > 0 ? '+' : '';
-        totalDisplay.textContent = `出目合計: ${diceSum} ${sign} ${modifier} = 最終達成値: ${finalTotal}`;
-      } else {
-        totalDisplay.textContent = `達成値: ${finalTotal}`;
-      }
+      const testSession = { flipUnlocked: false };
 
-      const resultMsg = document.getElementById('test-result-message');
-      if (isSuccess) {
-        resultMsg.textContent = '成功！';
-        resultMsg.style.color = '#27ae60';
-      } else {
-        resultMsg.textContent = '失敗…';
-        resultMsg.style.color = '#e74c3c';
-      }
-    });
-  }
+      const renderTestState = () => {
+        const currentTotal = recalculateRollOutcome(rollLogs, [], true).total;
+        const adjustedTotal = currentTotal + (isNaN(modifier) ? 0 : modifier);
+        const success = adjustedTotal >= finalTarget;
 
-  const targetValueInput = document.getElementById('target-value');
-  if (targetValueInput) {
-    targetValueInput.addEventListener('change', function () {
-      const value = parseInt(this.value, 10) || 0;
-      phaseTargets[currentPhaseId] = value;
-      phaseTargetLocked[currentPhaseId] = true;
-      updateTargetDisplay();
+        renderLog(rollLogs, 'test-log', true, [], testSession.flipUnlocked ? (result) => {
+          applyDiceFlip(result);
+          rerenderTestViews();
+        } : null);
+
+        const totalDisplay = document.getElementById('test-total');
+        if (modifier !== 0) {
+          const sign = modifier > 0 ? '+' : '';
+          totalDisplay.textContent = `出目合計: ${currentTotal} ${sign} ${modifier} = 最終達成値: ${adjustedTotal}`;
+        } else {
+          totalDisplay.textContent = `達成値: ${adjustedTotal}`;
+        }
+
+        const resultMsg = document.getElementById('test-result-message');
+        if (success) {
+          resultMsg.textContent = '成功！';
+          resultMsg.style.color = '#27ae60';
+        } else {
+          resultMsg.textContent = '失敗…';
+          resultMsg.style.color = '#e74c3c';
+        }
+      };
+
+      const rerenderTestViews = () => {
+        renderTestState();
+        const currentTotal = recalculateRollOutcome(rollLogs, [], true).total;
+        const adjustedTotal = currentTotal + (isNaN(modifier) ? 0 : modifier);
+        const success = adjustedTotal >= finalTarget;
+        showTestRollResultPopup(playerName, rollLogs, currentTotal, finalTarget, modifier, success, testSession.flipUnlocked ? (result) => {
+          applyDiceFlip(result);
+          rerenderTestViews();
+        } : null, testSession, rerenderTestViews);
+      };
+
+      rerenderTestViews();
     });
   }
 
